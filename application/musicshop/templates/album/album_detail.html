@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="py-5" xmlns="http://www.w3.org/1999/html">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="row gx-4 gx-lg-5 align-items-center">
+                    <div class="col-md-6"><img class="card-img-top mb-5 mb-md-0" src="{{ album.image.url }}" alt="..." /></div>
+                    <div class="col-md-6">
+                        <div class="linkblock" onclick="location.href='{% url 'artist_detail' artist_slug=album.artist.slug %}';">
+                            <div class="btn btn-default mt-auto">{{ album.artist.name }}</div>
+                        </div>
+                        <h1 class="display-5 fw-bolder">{{ album.name }}</h1>
+                        <div class="fs-5 mb-5">
+                            <span>{{ album.price }} руб.</span>
+                        </div>
+                        <p class="lead">{{ album.description }}</p>
+                        <p>Дата выхода: {{ album.release_date|date:"d-m-Y" }}</p>
+                        <p>Жанр: {{ album.artist.genre.name }}</p>
+                        <p>Трек лист альбома: {{ album.song_list|linebreaks }}</p>
+                        <p>Наличие: {% if album.stock %}<strong class="badge bg-success">
+                            Есть в наличии - {{ album.stock }} шт.</strong>{% else %}
+                            <strong class="badge bg-danger">Нет в наличии</strong>{% endif %}
+                        </p>
+                        {% if request.user.is_authenticated %}
+
+                            {% if album.stock %}
+                                {% if album not in cart.products_in_cart %}
+                                    <a href="{% url 'add_to_cart' ct_model=album.ct_model slug=album.slug %}">
+                                        <button class="btn btn-primary">
+                                    Добавить в корзину
+                                            </button>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'delete_from_cart' ct_model=album.ct_model slug=album.slug %}" class="btn btn-danger" disabled="">Удалить из корзины</a>
+                                {% endif %}
+                            {% else %}
+                                    {% if album not in request.user.customer.wishlist.all %}
+                                        <a href="{% url 'add_to_wishlist' album_id=album.id %}" class="btn btn-warning">
+                                        Добавить в ожидаемое
+                                        </a>
+                                    {% else %}
+                                        <a href="#" class="btn btn-default" disabled="">Добавлен в ожидаемое</a>
+                                    {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <a href="#" class="btn btn-default" disabled="">
+                            Авторизуйтесь или зарегистрируйтесь, только авторизованные пользователи
+                            могут осуществлять заказы
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+{% endblock content %}

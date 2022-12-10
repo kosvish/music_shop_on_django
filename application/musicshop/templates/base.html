@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'base' %}">Musicshop</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'base' %}">Главная</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'search' %}">Поиск</a>
+        </li>
+          {% if not request.user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Авторизация</a>
+          </li>
+            <li class="nav-item">
+            <a class="nav-link" href="{% url 'registration' %}">Регистрация</a>
+          </li>
+          {% else %}
+            <li class="nav-item">
+            <a class="nav-link" href="{% url 'account' %}">Личный кабинет</a>
+          </li>
+            <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+          </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link drowdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                   aria-expanded="false">
+
+                    Уведомления <i class="fas fa-bell"></i>
+                    <span class="badge bg-{% if notifications.count %}danger{% else %}secondary{% endif %}">
+                        {{ notifications.count }}
+                    </span>
+                </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+
+                            {% if notifications %}
+                                {% for n in notifications %}
+                                    <li><span class="dropdown-item">{{ n.text|safe }}</span></li>
+                                {% endfor %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a href="{% url 'clear-notifications' %}"
+                                           class="drowpdown-item">Пометить все, как прочитанное</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item" href="#">Нет новых уведомлений</a></li>
+                            {% endif %}
+                        </ul>
+              </li>
+          {% endif %}
+      </ul>
+        {% if request.user.is_authenticated %}
+        <ul class="navbar-nav">
+            <li class="nav-item"><a href="{% url 'cart' %}" class="nav-link"><i class="fas fa-shopping-cart"></i> <span class="badge bg-danger">{{ cart.products.count }}</span></a></li>
+        </ul>
+        {% endif %}
+    </div>
+  </div>
+</nav>
+
+{% block content %}
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-black">
+            <h1 class="display-4 fw-bolder">Хит продаж текущего месяца</h1>
+            <div class="linkblock" onclick="location.href='{{ month_bestseller.get_absolute_url }}';">
+                <div class="btn btn-default mt-auto"><p class="lead fw-normal text-black-50 mb-0 ">{{ month_bestseller.artist.name }} - {{ month_bestseller.name  }} </p></div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+<div class="container">
+        <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                    </div>
+                    <div class="col-md-4"></div>
+                </div>
+            <div class="row">
+                {% for album in albums %}
+                    <div class="card col-md-3 p-0 mb-3 mt-3">
+
+                        <img src="{{ album.image.url }}" class="card-img-top">
+                        <div class="card-body text-center">
+                        <h5 class="card-title"><a href="{{ album.artist.get_absolute_url }}" class="text-decoration-none">
+                            {{ album.artist.name }}
+                        </a></h5>
+                        <h5 class="card-title"><a href="{{ album.get_absolute_url }}" class="text-decoration-none">
+                            {{ album.name }}
+                        </a></h5>
+                        </div>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Носитель: <strong>{{ album.media_type.name }}</strong></li>
+                        <li class="list-group-item">Дата релиза: <strong>{{ album.release_date|date:"d-m-Y" }}</strong></li>
+                        <li class="list-group-item">Жанр: <strong>{{ album.artist.genre.name }}</strong></li>
+                        <li class="list-group-item">
+
+                            Наличие: {% if album.stock %}<strong class="badge bg-success">
+                            Есть в наличии - {{ album.stock }} шт.
+                        </strong>{% else %}
+                            <strong class="badge bg-danger">Нет в наличии</strong>
+                        {% endif %}
+
+                        </li>
+                    </ul>
+
+                    <div class="card-body text-center">
+
+                        {% if request.user.is_authenticated %}
+
+                            {% if album.stock %}
+                                {% if album not in cart.products_in_cart %}
+                                    <a href="{% url 'add_to_cart' ct_model=album.ct_model slug=album.slug %}">
+                                        <button class="btn btn-primary">
+                                    Добавить в корзину
+                                            </button>
+                                    </a>
+                                {% else %}
+                                    <a href="#" class="btn btn-default" disabled="">Добавлен в корзину</a>
+                                {% endif %}
+                            {% else %}
+                                    {% if album not in request.user.customer.wishlist.all %}
+                                        <a href="{% url 'add_to_wishlist' album_id=album.id %}" class="btn btn-warning">
+                                        Добавить в ожидаемое
+                                        </a>
+                                    {% else %}
+                                        <a href="#" class="btn btn-default" disabled="">Добавлен в ожидаемое</a>
+                                    {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <a href="#" class="btn btn-default" disabled="">
+                            Авторизуйтесь или зарегистрируйтесь, только авторизованные пользователи
+                            могут осуществлять заказы
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    </div>
+
+                {% endfor %}
+            </div>
+
+        </div>
+    {% endblock content %}
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+</html>
+
+<style>
+    header {
+      width: 100%;
+      height: 300px;
+      margin: 0;
+      padding: 0;
+      background: url({{ month_bestseller.image.url }}) center repeat;
+            }
+    img.animated-gif{
+      width: 70px;
+      height: 70px;
+                    }
+
+h1{
+  color: black;
+  -webkit-text-stroke: 1px rgba(0,0,0,0.5);
+  -webkit-text-fill-color: white;
+}
+   #slider {
+   margin: 0 auto;
+   width: 800px;
+   max-width: 100%;
+   text-align: center;
+}
+#slider input[type=radio] {
+   display: none;
+}
+#slider label {
+   cursor:pointer;
+   text-decoration: none;
+}
+#slides {
+   padding: 10px;
+   border: 3px solid #ccc;
+   background: #fff;
+   position: relative;
+   z-index: 1;
+}
+#overflow {
+   width: 100%;
+   overflow: hidden;
+}
+#slide1:checked ~ #slides .inner {
+   margin-left: 0;
+}
+#slide2:checked ~ #slides .inner {
+   margin-left: -100%;
+}
+#slide3:checked ~ #slides .inner {
+   margin-left: -200%;
+}
+#slide4:checked ~ #slides .inner {
+   margin-left: -300%;
+}
+#slides .inner {
+   transition: margin-left 800ms cubic-bezier(0.770, 0.000, 0.175, 1.000);
+   width: 400%;
+   line-height: 0;
+   height: 300px;
+}
+#slides .slide {
+   width: 25%;
+   float:left;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   height: 100%;
+   color: #fff;
+}
+#slides .slide_1 {
+   background: #00171F;
+}
+#slides .slide_2 {
+   background: #003459;
+}
+#slides .slide_3 {
+   background: #007EA7;
+}
+#slides .slide_4 {
+   background: #00A8E8;
+}
+#controls {
+   margin: -180px 0 0 0;
+   width: 100%;
+   height: 50px;
+   z-index: 3;
+   position: relative;
+}
+#controls label {
+   transition: opacity 0.2s ease-out;
+   display: none;
+   width: 50px;
+   height: 50px;
+   opacity: .4;
+}
+#controls label:hover {
+   opacity: 1;
+}
+#slide1:checked ~ #controls label:nth-child(2),
+#slide2:checked ~ #controls label:nth-child(3),
+#slide3:checked ~ #controls label:nth-child(4),
+#slide4:checked ~ #controls label:nth-child(1) {
+   background: url(https://image.flaticon.com/icons/svg/130/130884.svg) no-repeat;
+   float:right;
+   margin: 0 -50px 0 0;
+   display: block;
+}
+#slide1:checked ~ #controls label:nth-last-child(2),
+#slide2:checked ~ #controls label:nth-last-child(3),
+#slide3:checked ~ #controls label:nth-last-child(4),
+#slide4:checked ~ #controls label:nth-last-child(1) {
+   background: url(https://image.flaticon.com/icons/svg/130/130882.svg) no-repeat;
+   float:left;
+   margin: 0 0 0 -50px;
+   display: block;
+}
+#bullets {
+   margin: 150px 0 0;
+   text-align: center;
+}
+#bullets label {
+   display: inline-block;
+   width: 10px;
+   height: 10px;
+   border-radius:100%;
+   background: #ccc;
+   margin: 0 10px;
+}
+#slide1:checked ~ #bullets label:nth-child(1),
+#slide2:checked ~ #bullets label:nth-child(2),
+#slide3:checked ~ #bullets label:nth-child(3),
+#slide4:checked ~ #bullets label:nth-child(4) {
+   background: #444;
+}
+@media screen and (max-width: 900px) {
+   #slide1:checked ~ #controls label:nth-child(2),
+   #slide2:checked ~ #controls label:nth-child(3),
+   #slide3:checked ~ #controls label:nth-child(4),
+   #slide4:checked ~ #controls label:nth-child(1),
+   #slide1:checked ~ #controls label:nth-last-child(2),
+   #slide2:checked ~ #controls label:nth-last-child(3),
+   #slide3:checked ~ #controls label:nth-last-child(4),
+   #slide4:checked ~ #controls label:nth-last-child(1) {
+      margin: 0;
+   }
+   #slides {
+      max-width: calc(100% - 140px);
+      margin: 0 auto;
+   }
+}
+
+</style>
